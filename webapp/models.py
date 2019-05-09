@@ -20,7 +20,7 @@ role_perm = db.Table(
 
 
 class Role(db.Model):
-    role_id = db.Column(db.Integer, primary_key =True)
+    role_id = db.Column(db.Integer, primary_key=True)
     role_name = db.Column(db.String(32), index=True,
                           unique=True, nullable=False)
 
@@ -46,16 +46,17 @@ class User(UserMixin, db.Model):
     user_login = db.Column(db.String(32), index=True,
                            unique=True, nullable=False)
     user_password_hash = db.Column(db.String(128))
-    role_id = db.Column(db.Integer, db.ForeignKey('role.role_id'), nullable=False)
+    role_id = db.Column(db.Integer, db.ForeignKey(
+        'role.role_id'), nullable=False)
 
     user_pages = db.relationship('Page', backref='page_author', lazy='dynamic')
 
     def __repr__(self):
-        return '<User {}>'.format(self.user_name)
+        return '<User {}>'.format(self.user_login)
 
     @property
     def user_password(self):
-        raise AttributeError('password is not a readable property')
+        raise AttributeError('user_password is not a readable property')
 
     @user_password.setter
     def user_password(self, user_password):
@@ -71,7 +72,8 @@ class User(UserMixin, db.Model):
 menu_page = db.Table(
     'menu_page',
     db.Column('item_id', db.Integer, db.ForeignKey('menu_item.item_id')),
-    db.Column('page_id', db.Integer, db.ForeignKey('page.page_id'), nullable=False),
+    db.Column('page_id', db.Integer, db.ForeignKey(
+        'page.page_id'), nullable=False),
     db.PrimaryKeyConstraint('item_id')
 )
 
@@ -84,12 +86,12 @@ class MenuItem(db.Model):
         'menu_item.item_id'), nullable=True)
 
     item_subitems = db.relationship(
-        'MenuItem', backref='item_parent', lazy='dynamic')
+        'MenuItem', backref=db.backref("item_parent", remote_side=item_id), lazy='dynamic')
 
     item_link = db.relationship(
-        'MenuLink', backref='menu_item', lazy='dynamic', uselist=False)
+        'MenuLink', backref='menu_item', lazy='joined', uselist=False)
     item_page = db.relationship(
-        'Page', lazy='dynamic', secondary=menu_page, backref='menu_item', uselist=False)
+        'Page', lazy='joined', secondary=menu_page, backref='menu_item', uselist=False)
 
     def __repr__(self):
         return '<MenuItem {}>'.format(self.item_name)
