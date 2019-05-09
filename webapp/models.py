@@ -54,6 +54,9 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return '<User {}>'.format(self.user_login)
 
+    def get_id(self):
+        return str(self.user_id)
+
     @property
     def user_password(self):
         raise AttributeError('user_password is not a readable property')
