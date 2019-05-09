@@ -2,6 +2,7 @@ from datetime import datetime
 from webapp import db, login
 from werkzeug import generate_password_hash, check_password_hash
 from flask_login import UserMixin
+from sqlalchemy.ext.hybrid import hybrid_property
 
 # User things
 
@@ -57,13 +58,14 @@ class User(UserMixin, db.Model):
     def get_id(self):
         return str(self.user_id)
 
-    @property
+    @hybrid_property
     def user_password(self):
-        raise AttributeError('user_password is not a readable property')
+        return ''
 
     @user_password.setter
-    def user_password(self, user_password):
-        self.user_password_hash = generate_password_hash(user_password)
+    def user_password(self, new_user_password):
+        if new_user_password:
+            self.user_password_hash = generate_password_hash(new_user_password)
 
     def verify_password(self, password):
         return check_password_hash(self.user_password_hash, password)
