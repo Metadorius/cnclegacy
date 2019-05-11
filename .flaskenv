@@ -1,1 +1,2 @@
 FLASK_APP=cnclegacy.py
+FLASK_ENV=development

@@ -14,8 +14,10 @@ def load_user(user_id):
 
 role_perm = db.Table(
     'role_perm',
-    db.Column('role_id', db.Integer, db.ForeignKey('role.role_id')),
-    db.Column('perm_id', db.Integer, db.ForeignKey('perm.perm_id')),
+    db.Column('role_id', db.Integer, db.ForeignKey(
+        'role.role_id', onupdate="CASCADE", ondelete="CASCADE")),
+    db.Column('perm_id', db.Integer, db.ForeignKey(
+        'perm.perm_id', onupdate="CASCADE", ondelete="CASCADE")),
     db.PrimaryKeyConstraint('role_id', 'perm_id')
 )
 
@@ -30,7 +32,7 @@ class Role(db.Model):
         'Perm', lazy='dynamic', secondary=role_perm, backref='perm_roles')
 
     def __repr__(self):
-        return '<Role {}>'.format(self.role_name)
+        return self.role_name
 
 
 class Perm(db.Model):
@@ -39,21 +41,21 @@ class Perm(db.Model):
                           unique=True, nullable=False)
 
     def __repr__(self):
-        return '<Perm {}>'.format(self.perm_name)
+        return self.perm_name
 
 
 class User(UserMixin, db.Model):
     user_id = db.Column(db.Integer, primary_key=True)
     user_login = db.Column(db.String(32), index=True,
                            unique=True, nullable=False)
-    user_password_hash = db.Column(db.String(128))
+    user_password_hash = db.Column(db.String(128), nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey(
-        'role.role_id'), nullable=False)
+        'role.role_id', onupdate="CASCADE", ondelete="SET NULL"), nullable=True)
 
     user_pages = db.relationship('Page', backref='page_author', lazy='dynamic')
 
     def __repr__(self):
-        return '<User {}>'.format(self.user_login)
+        return self.user_login
 
     def get_id(self):
         return str(self.user_id)
@@ -76,9 +78,10 @@ class User(UserMixin, db.Model):
 
 menu_page = db.Table(
     'menu_page',
-    db.Column('item_id', db.Integer, db.ForeignKey('menu_item.item_id')),
+    db.Column('item_id', db.Integer, db.ForeignKey(
+        'menu_item.item_id', onupdate="CASCADE", ondelete="CASCADE")),
     db.Column('page_id', db.Integer, db.ForeignKey(
-        'page.page_id'), nullable=False),
+        'page.page_id', onupdate="CASCADE", ondelete="CASCADE"), nullable=False),
     db.PrimaryKeyConstraint('item_id')
 )
 
@@ -88,7 +91,13 @@ class MenuItem(db.Model):
     item_name = db.Column(db.String(32), index=True,
                           unique=True, nullable=False)
     parent_id = db.Column(db.Integer, db.ForeignKey(
-        'menu_item.item_id'), nullable=True)
+        'menu_item.item_id', onupdate="CASCADE", ondelete="SET NULL"), nullable=True)
+    # item_type = db.Column(db.String(32))
+
+    # __mapper_args__ = {
+    #     'polymorphic_identity': 'item',
+    #     'polymorphic_on': item_type
+    # }
 
     item_subitems = db.relationship(
         'MenuItem', backref=db.backref("item_parent", remote_side=item_id), lazy='dynamic')
@@ -99,24 +108,26 @@ class MenuItem(db.Model):
         'Page', lazy='joined', secondary=menu_page, backref='menu_item', uselist=False)
 
     def __repr__(self):
-        return '<MenuItem {}>'.format(self.item_name)
+        return self.item_name
 
 
 class MenuLink(db.Model):
     item_id = db.Column(db.Integer, db.ForeignKey(
-        'menu_item.item_id'), primary_key=True)
+        'menu_item.item_id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)
     item_link = db.Column(db.String(128), nullable=False)
 
     def __repr__(self):
-        return '<MenuLink {}>'.format(self.item_link)
+        return self.item_link
 
 # Tags
 
 
 page_tag = db.Table(
     'page_tag',
-    db.Column('page_id', db.Integer, db.ForeignKey('page.page_id')),
-    db.Column('tag_id', db.Integer, db.ForeignKey('tag.tag_id')),
+    db.Column('page_id', db.Integer, db.ForeignKey(
+        'page.page_id', onupdate="CASCADE", ondelete="CASCADE")),
+    db.Column('tag_id', db.Integer, db.ForeignKey(
+        'tag.tag_id', onupdate="CASCADE", ondelete="CASCADE")),
     db.PrimaryKeyConstraint('page_id', 'tag_id')
 )
 
@@ -127,25 +138,27 @@ class Tag(db.Model):
                          unique=True, nullable=False)
 
     def __repr__(self):
-        return '<Tag {}>'.format(self.tag_name)
+        return self.tag_name
 
 
 # Files
 
 page_file = db.Table(
     'page_file',
-    db.Column('page_id', db.Integer, db.ForeignKey('page.page_id')),
-    db.Column('file_id', db.Integer, db.ForeignKey('file.file_id')),
+    db.Column('page_id', db.Integer, db.ForeignKey(
+        'page.page_id', onupdate="CASCADE", ondelete="CASCADE")),
+    db.Column('file_id', db.Integer, db.ForeignKey(
+        'file.file_id', onupdate="CASCADE", ondelete="CASCADE")),
     db.PrimaryKeyConstraint('page_id', 'file_id')
 )
 
 
 class File(db.Model):
     file_id = db.Column(db.Integer, primary_key=True)
-    file_loc = db.Column(db.String(128), nullable=False)
+    file_path = db.Column(db.String(128), nullable=False)
 
     def __repr__(self):
-        return '<File {}>'.format(self.file_name)
+        return self.file_name
 
 
 # pages
@@ -156,14 +169,18 @@ class Page(db.Model):
                            unique=True, nullable=False)
     page_url = db.Column(db.String(64), unique=True, nullable=False)
     page_timestamp = db.Column(
-        db.DateTime, index=True, default=datetime.utcnow)
+        db.DateTime, index=True, default=datetime.utcnow, nullable=True)
     page_visible = db.Column(db.Boolean, index=True,
                              default=True, nullable=False)
-    page_preview = db.Column(db.Text)
-    page_content = db.Column(db.Text)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
+    page_preview = db.Column(db.Text, nullable=True)
+    page_content = db.Column(db.Text, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(
+        'user.user_id', onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
 
     page_tags = db.relationship(
         'Tag', lazy='dynamic', secondary=page_tag, backref='tag_pages')
     page_files = db.relationship(
         'File', lazy='dynamic', secondary=page_file, backref='file_pages')
+
+    def __repr__(self):
+        return self.page_title
