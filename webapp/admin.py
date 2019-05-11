@@ -79,13 +79,13 @@ class LinkView(ModelView):
     edit_modal = True
 
 
-
 class TagView(ModelView):
     column_searchable_list = ['tag_name']
     column_editable_list = ['tag_name']
 
     create_modal = True
     edit_modal = True
+
 
 class MDETextAreaWidget(widgets.TextArea):
     def __call__(self, field, **kwargs):
@@ -100,8 +100,8 @@ class MDETextAreaField(fields.TextAreaField):
 
 
 class PageView(ModelView):
-    column_searchable_list = ['page_title']
-    column_editable_list = ['page_title']
+    column_searchable_list = ['page_title', 'page_preview', 'page_content']
+    column_editable_list = ['page_title', 'page_url']
     column_exclude_list = ['page_content']
 
     form_overrides = {
@@ -114,7 +114,7 @@ class PageView(ModelView):
 
 
 class FileView(ModelView):
-
+    column_searchable_list = ['file_path']
     create_modal = True
     can_edit = False
 
@@ -141,15 +141,15 @@ def del_file(mapper, connection, target):
             pass
 
 
-dashboard.add_view(UserView(User, db.session)) # done pmuch
-dashboard.add_view(RoleView(Role, db.session)) # done
-dashboard.add_view(PermView(Perm, db.session))  # comment out
-dashboard.add_view(FileView(File, db.session)) # done
+dashboard.add_view(PageView(Page, db.session))
+dashboard.add_view(TagView(Tag, db.session))
+dashboard.add_view(FileView(File, db.session))
+
 dashboard.add_view(MenuView(MenuItem, db.session))
 dashboard.add_view(LinkView(Link, db.session))
-dashboard.add_view(TagView(Tag, db.session))
-dashboard.add_view(PageView(Page, db.session))
 
+dashboard.add_view(UserView(User, db.session))
+dashboard.add_view(RoleView(Role, db.session))
+dashboard.add_view(PermView(Perm, db.session))
 
-unmanaged_path = op.join(op.dirname(__file__), 'static', 'files')
 dashboard.add_view(FileAdmin(unmanaged_path, '/static/files/', name='Static Files'))
