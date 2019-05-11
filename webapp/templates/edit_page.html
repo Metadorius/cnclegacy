@@ -1,0 +1,16 @@
+{% extends 'admin/model/create.html' %}
+{% block tail %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    <script>
+    var simplemde = [
+        new SimpleMDE({
+            element: document.querySelectorAll('.simplemde')[0],
+        }),
+        new SimpleMDE({
+            element: document.querySelectorAll('.simplemde')[1],
+        })
+    ];
+    </script>
+{% endblock %}

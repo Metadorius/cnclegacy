@@ -1,0 +1,26 @@
+{% extends 'admin/model/create.html' %}
+{% block tail %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    <script>
+    var simplemde = [
+        new SimpleMDE({
+            element: document.querySelectorAll('.simplemde')[0],
+            autosave: {
+                enabled: true,
+                uniqueId: "Editor1",
+                delay: 1000,
+            }
+        }),
+        new SimpleMDE({
+            element: document.querySelectorAll('.simplemde')[1],
+            autosave: {
+                enabled: true,
+                uniqueId: "Editor2",
+            delay: 1000,
+            }
+        })
+    ];
+    </script>
+{% endblock %}

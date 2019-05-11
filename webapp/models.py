@@ -85,6 +85,14 @@ menu_page = db.Table(
     db.PrimaryKeyConstraint('item_id')
 )
 
+menu_link = db.Table(
+    'menu_link',
+    db.Column('item_id', db.Integer, db.ForeignKey(
+        'menu_item.item_id', onupdate="CASCADE", ondelete="CASCADE")),
+    db.Column('link_id', db.Integer, db.ForeignKey(
+        'link.link_id', onupdate="CASCADE", ondelete="CASCADE"), nullable=False),
+    db.PrimaryKeyConstraint('item_id')
+)
 
 class MenuItem(db.Model):
     item_id = db.Column(db.Integer, primary_key=True)
@@ -92,18 +100,13 @@ class MenuItem(db.Model):
                           unique=True, nullable=False)
     parent_id = db.Column(db.Integer, db.ForeignKey(
         'menu_item.item_id', onupdate="CASCADE", ondelete="SET NULL"), nullable=True)
-    # item_type = db.Column(db.String(32))
 
-    # __mapper_args__ = {
-    #     'polymorphic_identity': 'item',
-    #     'polymorphic_on': item_type
-    # }
 
     item_subitems = db.relationship(
         'MenuItem', backref=db.backref("item_parent", remote_side=item_id), lazy='dynamic')
 
     item_link = db.relationship(
-        'MenuLink', backref='menu_item', lazy='joined', uselist=False)
+        'Link', lazy='joined', secondary=menu_link, backref='menu_item', uselist=False)
     item_page = db.relationship(
         'Page', lazy='joined', secondary=menu_page, backref='menu_item', uselist=False)
 
@@ -111,13 +114,12 @@ class MenuItem(db.Model):
         return self.item_name
 
 
-class MenuLink(db.Model):
-    item_id = db.Column(db.Integer, db.ForeignKey(
-        'menu_item.item_id', onupdate="CASCADE", ondelete="CASCADE"), primary_key=True)
-    item_link = db.Column(db.String(128), nullable=False)
+class Link(db.Model):
+    link_id = db.Column(db.Integer, primary_key=True)
+    link_url = db.Column(db.String(128), nullable=False)
 
     def __repr__(self):
-        return self.item_link
+        return self.link_url
 
 # Tags
 
