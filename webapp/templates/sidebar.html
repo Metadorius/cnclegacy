@@ -1,8 +1,31 @@
 <div class="sidebar-header">
-  <h3>Bootstrap Sidebar</h3>
+  <h3>Наследие C&C</h3>
 </div>
 <ul class="list-unstyled components">
-  <p>Dummy Heading</p>
+  {% for item in menu_items recursive %}
+  <li>
+    <div class="split-container">
+
+      {% if item.item_link %}
+      <a href="{{ item.item_link }}" class="split-left">{{ item.item_name|e }}</a>
+      {% elif item.item_page %}
+      <a href="/page/{{ item.item_page.page_url }}" class="split-left">{{ item.item_name|e }}</a>
+      {% else %}
+      <a href="#" class="split-left">{{ item.item_name|e }}</a>
+      {% endif %}
+
+      {% if item.item_subitems.all() %}
+      <a href="#{{ item.item_name|tr|cc }}" data-toggle="collapse" aria-expanded="false" class="split-right dropdown-toggle"></a>
+      {% endif %}
+    </div>
+    {% if item.item_subitems.all() %}
+      <ul class="collapse list-unstyled" id="{{ item.item_name|tr|cc }}">
+        {{ loop(item.item_subitems) }}
+      </ul>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>{# 
   <li>
     <div class="split-container">
       <a href="#" class="split-left">Home</a>
@@ -69,4 +92,4 @@
   <li>
     <a href="#" class="menu-item">Contact</a>
   </li>
-</ul>
+</ul> #}

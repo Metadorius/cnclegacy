@@ -10,7 +10,7 @@ app.config.from_object(Config)
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 login = LoginManager(app)
-dashboard = Admin(app, name='Dashboard', template_mode='bootstrap3')
+dashboard = Admin(app, name='Dashboard')
 
 
 from webapp import routes, models, admin
