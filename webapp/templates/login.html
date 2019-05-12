@@ -1,20 +1,12 @@
 {% extends "base.html" %}
+{% from 'bootstrap/form.html' import render_form %}
 
-{% block body %}
-  <div class="row align-items-center justify-content-center col-md-4">
-    <h1>Войти</h1>
-    <form action="" method="post" novalidate>
-      {{ form.hidden_tag() }}
-      <p>
-        {{ form.username.label }}<br>
-        {{ form.username(size=24) }}
-      </p>
-      <p>
-        {{ form.password.label }}<br>
-        {{ form.password(size=24) }}
-      </p>
-      <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
-      <p>{{ form.submit() }}</p>
-    </form>
+{% block layout %}
+  <div class="row align-items-center justify-content-center">
+    <div class="col-md-4">
+        <br/>
+        <h2>Войти</h2>
+        {{ render_form(form) }}
+    </div>
   </div>
 {% endblock %}

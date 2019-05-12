@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block body %}
+{% block layout %}
   <div class="wrapper">
     <nav id="sidebar">
       {% include 'sidebar.html' %}
@@ -32,7 +32,7 @@
           
         </div>
       </nav>
-      {% block content %}{% endblock %}
+      {% block page_content %}{% endblock %}
     </div>
   </div>
 {% endblock %}
