@@ -106,9 +106,9 @@ class MenuItem(db.Model):
         'MenuItem', backref=db.backref("item_parent", remote_side=item_id), lazy='dynamic')
 
     item_link = db.relationship(
-        'Link', lazy='joined', secondary=menu_link, backref='menu_item', uselist=False)
+        'Link', lazy='joined', secondary=menu_link, backref='menu_items', uselist=False)
     item_page = db.relationship(
-        'Page', lazy='joined', secondary=menu_page, backref='menu_item', uselist=False)
+        'Page', lazy='joined', secondary=menu_page, backref='menu_items', uselist=False)
 
     def __repr__(self):
         return self.item_name

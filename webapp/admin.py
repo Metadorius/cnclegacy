@@ -1,10 +1,13 @@
 from flask_admin.contrib.sqla import ModelView
+from flask import url_for, redirect, request
 from webapp import dashboard
 from webapp.models import *
 from wtforms import fields, widgets
 from wtforms.fields import PasswordField
+from flask_login import current_user
 from flask_admin.contrib.fileadmin import FileAdmin
 from flask_admin import form
+from flask_admin.menu import MenuLink
 from sqlalchemy.event import listens_for
 import os.path as op
 import os
@@ -23,13 +26,55 @@ except OSError:
     pass
 
 
-class UserView(ModelView):
-    column_exclude_list = ['user_password_hash']
-    column_searchable_list = ['user_login']
-    column_editable_list = ['user_login']
+def has_permission(id):
+        return bool(current_user.user_role.role_perms.filter_by(perm_id=id).first())
+
+
+class ProtectedView(ModelView):
+    def is_accessible(self):
+        return has_permission(1)
+
+    def inaccessible_callback(self, name, **kwargs):
+        # redirect to admin page if user doesn't have access
+        return redirect(url_for('admin', next=request.url))
 
     create_modal = True
     edit_modal = True
+
+
+class UtilityView(ProtectedView):
+    def is_accessible(self):
+        return super().is_accessible() or has_permission(2)
+
+
+class ManageUsersView(ProtectedView):
+    def is_accessible(self):
+        return super().is_accessible() or has_permission(3)
+
+
+class StructureView(ProtectedView):
+    def is_accessible(self):
+        return super().is_accessible() or has_permission(4)
+
+
+class ContentView(ProtectedView):
+    def is_accessible(self):
+        return super().is_accessible() or has_permission(5)
+
+
+class ProtectedFileAdmin(FileAdmin):
+    def is_accessible(self):
+        return has_permission(1) or has_permission(2)
+
+    def inaccessible_callback(self, name, **kwargs):
+        # redirect to login page if user doesn't have access
+        return redirect(url_for('admin', next=request.url))
+
+
+class UserView(ManageUsersView):
+    column_exclude_list = ['user_password_hash']
+    column_searchable_list = ['user_login']
+    column_editable_list = ['user_login']
 
     form_excluded_columns = ['user_pages', 'user_password_hash']
 
@@ -42,49 +87,36 @@ class UserView(ModelView):
             model.user_password = form.password.data
 
 
-class RoleView(ModelView):
+class RoleView(ManageUsersView):
     column_searchable_list = ['role_name']
     column_editable_list = ['role_name']
-
-    create_modal = True
-    edit_modal = True
 
     form_excluded_columns = ['role_users']
 
 
-class PermView(ModelView):
+class PermView(UtilityView):
+    column_display_pk = True
     column_searchable_list = ['perm_name']
     column_editable_list = ['perm_name']
-
-    create_modal = True
-    edit_modal = True
 
     form_excluded_columns = ['perm_roles']
 
 
-class MenuView(ModelView):
+class MenuView(StructureView):
     column_display_pk = True
     column_searchable_list = ['item_name']
     column_editable_list = ['item_name']
 
-    create_modal = True
-    edit_modal = True
 
-
-class LinkView(ModelView):
+class LinkView(StructureView):
     column_searchable_list = ['link_url']
     column_editable_list = ['link_url']
 
-    create_modal = True
-    edit_modal = True
 
-
-class TagView(ModelView):
+class TagView(ContentView):
     column_searchable_list = ['tag_name']
     column_editable_list = ['tag_name']
 
-    create_modal = True
-    edit_modal = True
 
 
 class MDETextAreaWidget(widgets.TextArea):
@@ -99,11 +131,15 @@ class MDETextAreaField(fields.TextAreaField):
     widget = MDETextAreaWidget()
 
 
-class PageView(ModelView):
+class PageView(ContentView):
     column_searchable_list = ['page_title', 'page_preview', 'page_content']
     column_editable_list = ['page_title', 'page_url']
     column_exclude_list = ['page_content']
 
+    create_modal = False
+    edit_modal = False
+
+    form_excluded_columns = ['menu_items']
     form_overrides = {
         'page_content': MDETextAreaField,
         'page_preview': MDETextAreaField
@@ -113,9 +149,8 @@ class PageView(ModelView):
     edit_template = 'edit_page.html'
 
 
-class FileView(ModelView):
+class FileView(ContentView):
     column_searchable_list = ['file_path']
-    create_modal = True
     can_edit = False
 
     form_overrides = {
@@ -140,16 +175,17 @@ def del_file(mapper, connection, target):
         except OSError:
             pass
 
+dashboard.add_link(MenuLink(name='Back to site', url='/'))
 
-dashboard.add_view(PageView(Page, db.session))
-dashboard.add_view(TagView(Tag, db.session))
-dashboard.add_view(FileView(File, db.session))
+dashboard.add_view(PageView(Page, db.session, category="Content"))
+dashboard.add_view(TagView(Tag, db.session, category="Content"))
+dashboard.add_view(FileView(File, db.session, category="Content"))
 
-dashboard.add_view(MenuView(MenuItem, db.session))
-dashboard.add_view(LinkView(Link, db.session))
+dashboard.add_view(MenuView(MenuItem, db.session, category="Structure"))
+dashboard.add_view(LinkView(Link, db.session, category="Structure"))
 
-dashboard.add_view(UserView(User, db.session))
-dashboard.add_view(RoleView(Role, db.session))
-dashboard.add_view(PermView(Perm, db.session))
+dashboard.add_view(UserView(User, db.session, category="User Management"))
+dashboard.add_view(RoleView(Role, db.session, category="User Management"))
+dashboard.add_view(PermView(Perm, db.session, category="Utilities"))
 
-dashboard.add_view(FileAdmin(unmanaged_path, '/static/files/', name='Static Files'))
+dashboard.add_view(ProtectedFileAdmin(unmanaged_path, '/static/files/', name='Static Files', category="Utilities"))
