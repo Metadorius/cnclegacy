@@ -160,7 +160,7 @@ class File(db.Model):
     file_path = db.Column(db.String(128), nullable=False)
 
     def __repr__(self):
-        return self.file_name
+        return self.file_path
 
 
 # pages
