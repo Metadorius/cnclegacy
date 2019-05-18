@@ -17,4 +17,4 @@ dashboard = Admin(app, name='Dashboard', index_view=ProtectedAdminIndexView())
 bootstrap = Bootstrap(app)
 
 
-from webapp import routes, models, admin
+from webapp import routes, models, admin, errors
