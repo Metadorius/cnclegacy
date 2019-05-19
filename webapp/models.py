@@ -4,6 +4,7 @@ from werkzeug import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 from sqlalchemy.ext.hybrid import hybrid_property
 
+
 # User things
 
 
@@ -29,7 +30,7 @@ class Role(db.Model):
 
     role_users = db.relationship('User', backref='user_role', lazy='dynamic')
     role_perms = db.relationship(
-        'Perm', lazy='dynamic', secondary=role_perm, backref='perm_roles')
+        'Perm', lazy='dynamic', secondary=role_perm, back_populates='perm_roles')
 
     def __repr__(self):
         return self.role_name
@@ -39,6 +40,9 @@ class Perm(db.Model):
     perm_id = db.Column(db.Integer, primary_key=True)
     perm_name = db.Column(db.String(32), index=True,
                           unique=True, nullable=False)
+
+    perm_roles = db.relationship(
+        'Role', lazy='dynamic', secondary=role_perm, back_populates='role_perms')
 
     def __repr__(self):
         return self.perm_name
@@ -139,6 +143,9 @@ class Tag(db.Model):
     tag_name = db.Column(db.String(32), index=True,
                          unique=True, nullable=False)
 
+    tag_pages = db.relationship(
+        'Page', lazy='dynamic', secondary=page_tag, back_populates='page_tags')
+
     def __repr__(self):
         return self.tag_name
 
@@ -158,6 +165,9 @@ page_file = db.Table(
 class File(db.Model):
     file_id = db.Column(db.Integer, primary_key=True)
     file_path = db.Column(db.String(128), nullable=False)
+
+    file_pages = db.relationship(
+        'Page', lazy='dynamic', secondary=page_file, back_populates='page_files')
 
     def __repr__(self):
         return self.file_path
@@ -180,9 +190,9 @@ class Page(db.Model):
         'user.user_id', onupdate="CASCADE", ondelete="CASCADE"), nullable=True)
 
     page_tags = db.relationship(
-        'Tag', lazy='dynamic', secondary=page_tag, backref='tag_pages')
+        'Tag', lazy='dynamic', secondary=page_tag, back_populates='tag_pages')
     page_files = db.relationship(
-        'File', lazy='dynamic', secondary=page_file, backref='file_pages')
+        'File', lazy='dynamic', secondary=page_file, back_populates='file_pages')
 
     def __repr__(self):
         return self.page_title
