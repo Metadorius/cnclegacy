@@ -5,6 +5,8 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_admin import Admin
 from flask_bootstrap import Bootstrap
+from flask_misaka import Misaka
+from flask_moment import Moment
 from webapp.admin_base import ProtectedAdminIndexView
 
 
@@ -15,6 +17,7 @@ migrate = Migrate(app, db)
 login = LoginManager(app)
 dashboard = Admin(app, name='Dashboard', index_view=ProtectedAdminIndexView())
 bootstrap = Bootstrap(app)
-
+md = Misaka(app)
+moment = Moment(app)
 
 from webapp import routes, models, admin, errors

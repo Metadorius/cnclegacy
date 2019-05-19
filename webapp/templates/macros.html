@@ -1,0 +1,42 @@
+{% macro page_preview(page) %}
+<div class="card bg-light">
+  <div class="card-body">
+    <h4 class="card-title mb-0">{{ page.page_title }}</h4>
+    <small class="card-subtitle mb-2 text-muted">
+      <a href="/user/{{ page.page_author.user_login }}">{{ page.page_author.user_login }}</a> / {{ moment(page.page_timestamp).fromNow() }}
+    </small>
+    <p class="card-text">{{ page.page_preview|markdown }}</p>
+    <a href="/page/{{ page.page_url }}" class="card-link float-right">Читать далее <i class="fas fa-arrow-right"></i></a>
+  </div>
+</div>
+{% endmacro %}
+
+{% macro page_full(page) %}
+<div class="card bg-light">
+  <div class="card-body">
+    <h4 class="card-title mb-0">{{ page.page_title }}</h4>
+    <small class="card-subtitle mb-2 text-muted">
+      <a href="/user/{{ page.page_author.user_login }}">{{ page.page_author.user_login }}</a> / {{ moment(page.page_timestamp).fromNow() }}
+    </small>
+    <p class="card-text">{{ page.page_content|markdown }}</p>
+  </div>
+  {% if page.page_files.all() %}
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <h6 class="card-title">Прикрепленные файлы</h5>
+      {% for file in page.page_files %}
+          <a href="/static/managed/{{ file.file_path }}" class="btn btn-primary"><i class="fas fa-file-download"></i> {{ file.file_path|truncate(16) }}</a>
+      {% endfor %}
+    </li>
+  </ul>
+  {% endif %}
+  {% if page.page_tags.all() %}
+  <div class="card-footer text-muted">
+    <small>Метки:</small>
+    {% for tag in page.page_tags %}
+      <a href="#" class="badge badge-primary"><i class="fas fa-tag"></i> {{ tag.tag_name }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}

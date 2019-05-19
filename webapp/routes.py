@@ -39,6 +39,24 @@ def logout():
 
 
 @app.route('/')
+def root():
+    return redirect(url_for('index'))
+
+
 @app.route('/index')
 def index():
-    return render_template('index.html', menu_items=MenuItem.query.filter_by(parent_id=None).all())
+    return render_template('index.html',
+        menu_items=MenuItem.query.filter_by(parent_id=None).all(),
+        pages=Page.query.order_by(Page.page_timestamp.desc()).all())
+
+
+@app.route('/page/<url>')
+def full_page(url):
+    page = Page.query.filter_by(page_url=url).first_or_404()
+    return render_template('page.html', menu_items=MenuItem.query.filter_by(parent_id=None).all(), page=page)
+
+
+@app.route('/user/<username>')
+def user_page(username):
+    user = User.query.filter_by(user_login=username).first_or_404()
+    return render_template('user.html', menu_items=MenuItem.query.filter_by(parent_id=None).all(), user=user)

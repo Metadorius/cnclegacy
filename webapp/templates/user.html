@@ -1,0 +1,8 @@
+{% extends "navigation.html" %}
+{% from "macros.html"import page_preview with context %}
+
+{% block page_content %}
+    {% for page in user.user_pages|sort(attribute='page_timestamp', reverse=True) %}
+        {{ page_preview(page) }}
+    {% endfor %}
+{% endblock %}

@@ -1,5 +1,8 @@
 {% extends "navigation.html" %}
+{% from "macros.html"import page_preview with context %}
 
 {% block page_content %}
-  
+    {% for page in pages %}
+        {{ page_preview(page) }}
+    {% endfor %}
 {% endblock %}
