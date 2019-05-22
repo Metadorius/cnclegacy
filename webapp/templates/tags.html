@@ -1,0 +1,16 @@
+{% extends "navigation.html" %}
+{% from "macros.html"import page_preview with context %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+{% set title = "Метки" %}
+
+
+{% block page_content %}
+  <div class="card">
+    <div class="card-body">
+      <h6 class="card-title"><b>Список меток</b></h6>
+      {% for tag in tags %}
+        <a href="/tags/{{ tag.tag_name }}" class="badge badge-primary"><i class="fas fa-tag"></i> {{ tag.tag_name }} <span class="badge badge-light">{{ tag.tag_pages.count() }}</span></a>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}

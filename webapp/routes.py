@@ -1,9 +1,10 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, request
 from webapp import app
 from webapp.forms import LoginForm
 from flask_login import current_user, login_user, logout_user
 from webapp.models import *
 from unidecode import unidecode
+from werkzeug.urls import url_parse
 
 
 @app.template_filter('cc')
@@ -28,7 +29,10 @@ def login():
             flash('Неверные логин или пароль!')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
-        return redirect(url_for('index'))
+        next_page = request.args.get('next')
+        if not next_page or url_parse(next_page).netloc != '':
+            next_page = url_for('index')
+        return redirect(next_page)
     return render_template('login.html', title='Войти', form=form)
 
 
@@ -38,25 +42,64 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def root():
     return redirect(url_for('index'))
 
 
-@app.route('/index')
+@app.route('/index', methods=['GET', 'POST'])
 def index():
+    page = request.args.get('page', 1, type=int)
+    pages = Page.query.order_by(Page.page_timestamp.desc()).filter_by(page_visible=True).paginate(
+        page, app.config['POSTS_PER_PAGE'], False)
+    menu_items = MenuItem.query.filter_by(parent_id=None).all()
+    
     return render_template('index.html',
-        menu_items=MenuItem.query.filter_by(parent_id=None).all(),
-        pages=Page.query.order_by(Page.page_timestamp.desc()).all())
+        menu_items=menu_items,
+        pages=pages)
 
 
 @app.route('/page/<url>')
 def full_page(url):
-    page = Page.query.filter_by(page_url=url).first_or_404()
-    return render_template('page.html', menu_items=MenuItem.query.filter_by(parent_id=None).all(), page=page)
+    page = Page.query.filter_by(page_url=url, page_visible=True).first_or_404()
+    menu_items = MenuItem.query.filter_by(parent_id=None).all()
+
+    return render_template('page.html', menu_items=menu_items, page=page)
 
 
-@app.route('/user/<username>')
+@app.route('/user/<username>', methods=['GET', 'POST'])
 def user_page(username):
+    page = request.args.get('page', 1, type=int)
     user = User.query.filter_by(user_login=username).first_or_404()
-    return render_template('user.html', menu_items=MenuItem.query.filter_by(parent_id=None).all(), user=user)
+    menu_items = MenuItem.query.filter_by(parent_id=None).all()
+    return render_template('user.html',
+        menu_items=menu_items,
+        user=user,
+        page_num=page,
+        per_page=app.config['POSTS_PER_PAGE'])
+
+
+@app.route('/tags')
+def tags_page():
+    tags = Tag.query.all()
+    tags.sort(key=lambda i: len(i.tag_pages.all()), reverse=True)
+    menu_items = MenuItem.query.filter_by(parent_id=None).all()
+
+    return render_template('tags.html',
+        menu_items=menu_items,
+        tags=tags)
+
+@app.route('/tags/<tag_name>', methods=['GET', 'POST'])
+def tag_page(tag_name):
+    page = request.args.get('page', 1, type=int)
+    tag = Tag.query.filter_by(tag_name=tag_name).first_or_404()
+    tag_pages = Page.query.filter(Page.page_tags.any(tag_name=tag_name))
+    menu_items = MenuItem.query.filter_by(parent_id=None).all()
+
+    return render_template('tag_pages.html',
+        menu_items=menu_items,
+        tag=tag,
+        tag_pages=tag_pages,
+        page_num=page,
+        per_page=app.config['POSTS_PER_PAGE'])
+

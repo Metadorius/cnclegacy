@@ -1,8 +1,12 @@
 {% extends "navigation.html" %}
-{% from "macros.html"import page_preview with context %}
+{% from "macros.html" import page_preview with context %}
+{% set title = "Главная" %}
+{% from 'bootstrap/pagination.html' import render_pagination %}
+
 
 {% block page_content %}
-    {% for page in pages %}
+    {% for page in pages.items %}
         {{ page_preview(page) }}
     {% endfor %}
+    {{ render_pagination(pages, align='center') }}
 {% endblock %}

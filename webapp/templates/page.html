@@ -1,5 +1,6 @@
 {% extends "navigation.html" %}
 {% from "macros.html"import page_full with context %}
+{% set title = page.page_title %}
 
 {% block page_content %}
     {{ page_full(page) }}

@@ -6,6 +6,12 @@
       <a href="/user/{{ page.page_author.user_login }}">{{ page.page_author.user_login }}</a> / {{ moment(page.page_timestamp).fromNow() }}
     </small>
     <p class="card-text">{{ page.page_preview|markdown }}</p>
+    {% if page.page_tags.all() %}
+    <small>Метки:</small>
+    {% for tag in page.page_tags %}
+      <a href="/tags/{{ tag.tag_name }}" class="badge badge-primary"><i class="fas fa-tag"></i> {{ tag.tag_name }}</a>
+    {% endfor %}
+    {% endif %}
     <a href="/page/{{ page.page_url }}" class="card-link float-right">Читать далее <i class="fas fa-arrow-right"></i></a>
   </div>
 </div>
@@ -23,7 +29,7 @@
   {% if page.page_files.all() %}
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
-      <h6 class="card-title">Прикрепленные файлы</h5>
+      <p class="card-title">Прикрепленные файлы</p>
       {% for file in page.page_files %}
           <a href="/static/managed/{{ file.file_path }}" class="btn btn-primary"><i class="fas fa-file-download"></i> {{ file.file_path|truncate(16) }}</a>
       {% endfor %}
@@ -31,10 +37,10 @@
   </ul>
   {% endif %}
   {% if page.page_tags.all() %}
-  <div class="card-footer text-muted">
+  <div class="card-footer">
     <small>Метки:</small>
     {% for tag in page.page_tags %}
-      <a href="#" class="badge badge-primary"><i class="fas fa-tag"></i> {{ tag.tag_name }}</a>
+      <a href="/tags/{{ tag.tag_name }}" class="badge badge-primary"><i class="fas fa-tag"></i> {{ tag.tag_name }}</a>
     {% endfor %}
   </div>
   {% endif %}
