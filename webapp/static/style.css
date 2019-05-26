@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=PT+Sans|Monsterrat&display=swap');
+@import url('https://fonts.googleapis.com/css?family=PT+Sans|Fira+Sans&display=swap');
 body {
     font-family: 'PT Sans', sans-serif;
     background: #fafafa;
@@ -13,11 +13,11 @@ p {
 }
 
 h1, h2, h3, h4, h5, h6 {
-    font-family: 'Monsterrat', sans-serif;
+    font-family: 'Fira Sans', sans-serif;
 }
 
 #sidebar {
-    font-family: 'Monsterrat', sans-serif;
+    font-family: 'Fira Sans', sans-serif;
 }
 
 #sidebar a,
