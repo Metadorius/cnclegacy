@@ -5,6 +5,7 @@ from flask_login import current_user, login_user, logout_user
 from webapp.models import *
 from unidecode import unidecode
 from werkzeug.urls import url_parse
+from datetime import datetime
 
 
 @app.template_filter('cc')
@@ -50,7 +51,7 @@ def root():
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     page = request.args.get('page', 1, type=int)
-    pages = Page.query.order_by(Page.page_timestamp.desc()).filter_by(page_visible=True).paginate(
+    pages = Page.query.filter_by(page_visible=True).filter(Page.page_timestamp <= datetime.utcnow()).order_by(Page.page_timestamp.desc()).paginate(
         page, app.config['POSTS_PER_PAGE'], False)
     menu_items = MenuItem.query.filter_by(parent_id=None).all()
     
@@ -61,7 +62,7 @@ def index():
 
 @app.route('/page/<url>')
 def full_page(url):
-    page = Page.query.filter_by(page_url=url, page_visible=True).first_or_404()
+    page = Page.query.filter_by(page_url=url, page_visible=True).filter(Page.page_timestamp <= datetime.utcnow()).first_or_404()
     menu_items = MenuItem.query.filter_by(parent_id=None).all()
 
     return render_template('page.html', menu_items=menu_items, page=page)
@@ -71,10 +72,13 @@ def full_page(url):
 def user_page(username):
     page = request.args.get('page', 1, type=int)
     user = User.query.filter_by(user_login=username).first_or_404()
+    user_pages = user.user_pages.filter_by(page_visible=True).filter(Page.page_timestamp <= datetime.utcnow()).order_by(Page.page_timestamp.desc())
     menu_items = MenuItem.query.filter_by(parent_id=None).all()
     return render_template('user.html',
         menu_items=menu_items,
+        datetime=datetime,
         user=user,
+        user_pages=user_pages,
         page_num=page,
         per_page=app.config['POSTS_PER_PAGE'])
 
@@ -93,7 +97,7 @@ def tags_page():
 def tag_page(tag_name):
     page = request.args.get('page', 1, type=int)
     tag = Tag.query.filter_by(tag_name=tag_name).first_or_404()
-    tag_pages = Page.query.filter(Page.page_tags.any(tag_name=tag_name))
+    tag_pages = Page.query.filter(Page.page_tags.any(tag_name=tag_name)).filter_by(page_visible=True).filter(Page.page_timestamp <= datetime.utcnow()).order_by(Page.page_timestamp.desc())
     menu_items = MenuItem.query.filter_by(parent_id=None).all()
 
     return render_template('tag_pages.html',
@@ -101,5 +105,6 @@ def tag_page(tag_name):
         tag=tag,
         tag_pages=tag_pages,
         page_num=page,
-        per_page=app.config['POSTS_PER_PAGE'])
+        per_page=app.config['POSTS_PER_PAGE']
+    )
 

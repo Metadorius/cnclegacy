@@ -2,7 +2,7 @@
 {% from "macros.html"import page_preview with context %}
 {% from 'bootstrap/pagination.html' import render_pagination %}
 {% set title = tag %}
-{% set pagination = tag_pages.filter_by(page_visible=True).paginate(page_num, per_page, False) %}
+{% set pagination = tag_pages.paginate(page_num, per_page, False) %}
 
 {% block page_content %}
   <div class="card float-md-left mr-md-3">
@@ -15,7 +15,7 @@
       </ul>
     </div>
   </div>
-  {% for page in pagination.items|sort(attribute='page_timestamp', reverse=True) %}
+  {% for page in pagination.items %}
     {{ page_preview(page) }}
   {% endfor %}
   {{ render_pagination(pagination, align='center') }}
