@@ -1,9 +1,11 @@
 from flask_admin.contrib.sqla import ModelView
-from flask import url_for, redirect, request
+from flask import url_for, redirect, request, flash
 from webapp import dashboard
 from webapp.models import *
+from webapp.validators import *
 from wtforms import fields, widgets
 from wtforms.fields import PasswordField
+from wtforms.validators import *
 from flask_login import current_user
 from flask_admin.contrib.fileadmin import FileAdmin
 from flask_admin import form
@@ -76,13 +78,26 @@ class UserView(ManageUsersView):
     column_searchable_list = ['user_login']
     column_editable_list = ['user_login']
 
+    column_list = ['user_login', 'user_role']
+    column_default_sort = ('role_id', True)
+
     form_excluded_columns = ['user_pages', 'user_password_hash']
 
+    form_args = dict(
+        user_login=dict(validators=[username_validator])
+    )
+
     form_extra_fields = {
-        'password': PasswordField('Password')
+        'password': PasswordField('Password', [
+            Optional(),
+            EqualTo('confirm', message='Passwords must match'),
+            password_validator]),
+        'confirm': PasswordField('Repeat Password')
     }
 
     def on_model_change(self, form, model, is_created):
+        if is_created and not form.password.data:
+            raise ValidationError("User can't have empty password!")
         if form.password.data:
             model.user_password = form.password.data
 
@@ -97,8 +112,11 @@ class RoleView(ManageUsersView):
 class PermView(UtilityView):
     column_display_pk = True
     column_searchable_list = ['perm_name']
-    column_editable_list = ['perm_name']
+    can_delete = False
+    can_create = False
+    can_edit = False
 
+    column_default_sort = ('perm_id', False)
     form_excluded_columns = ['perm_roles']
 
 
@@ -106,6 +124,14 @@ class MenuView(StructureView):
     column_display_pk = True
     column_searchable_list = ['item_name']
     column_editable_list = ['item_name']
+
+    column_default_sort = ('item_id', True)
+
+    def validate_form(self, form):
+        if form.item_link.data and form.item_page.data:
+            flash("Menu item can't be attached both to page and static link!")
+            return False
+        return super(MenuView, self).validate_form(form)
 
 
 class LinkView(StructureView):
@@ -117,6 +143,7 @@ class TagView(ContentView):
     column_searchable_list = ['tag_name']
     column_editable_list = ['tag_name']
 
+    column_default_sort = ('tag_name', True)
 
 
 class MDETextAreaWidget(widgets.TextArea):
@@ -132,14 +159,33 @@ class MDETextAreaField(fields.TextAreaField):
 
 
 class PageView(ContentView):
-    column_searchable_list = ['page_title', 'page_preview', 'page_content']
-    column_editable_list = ['page_title', 'page_url']
+    column_searchable_list = ['page_title', 'page_preview', 'page_content', 'page_author.user_login']
+    column_editable_list = ['page_title', 'page_url', 'page_visible']
     column_exclude_list = ['page_content']
+
+
+    column_default_sort = ('page_timestamp', True)
 
     create_modal = False
     edit_modal = False
 
-    form_excluded_columns = ['menu_items']
+    form_args = dict(
+        page_url=dict(validators=[slug_validator]),
+        page_author=dict(default=lambda _: current_user)
+    )
+
+    form_columns = [
+        'page_title',
+        'page_url',
+        'page_author',
+        'page_timestamp',
+        'page_visible',
+        'page_preview',
+        'page_content',
+        'page_files',
+        'page_tags'
+    ]
+
     form_overrides = {
         'page_content': MDETextAreaField,
         'page_preview': MDETextAreaField
@@ -147,6 +193,11 @@ class PageView(ContentView):
 
     create_template = 'create_page.html'
     edit_template = 'edit_page.html'
+
+    def create_form(self):
+        form = super(PageView, self).create_form()
+        form.page_author.data = current_user
+        return form
 
 
 class FileView(ContentView):

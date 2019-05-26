@@ -9,4 +9,4 @@ class ProtectedAdminIndexView(AdminIndexView):
     def index(self):
         if not current_user.is_authenticated:
             return redirect(url_for('login', next=request.url))
-        return super(ProtectedAdminIndexView, self).index()
+        return redirect(self.get_url('page.index_view', search=current_user.user_login))

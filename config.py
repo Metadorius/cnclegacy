@@ -6,5 +6,5 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
         'mysql+mysqldb://root:dev2703@localhost:3306/cnclegacy'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    FLASK_ADMIN_SWATCH = 'flatly'
+    FLASK_ADMIN_SWATCH = 'spacelab'
     POSTS_PER_PAGE = 5
