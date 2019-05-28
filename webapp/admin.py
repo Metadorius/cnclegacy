@@ -125,13 +125,13 @@ class MenuView(StructureView):
     column_searchable_list = ['item_name']
     column_editable_list = ['item_name']
 
-    column_default_sort = ('item_id', True)
+    column_default_sort = ('item_id', False)
 
-    def validate_form(self, form):
+    def on_model_change(self, form, model, is_created):
         if form.item_link.data and form.item_page.data:
-            flash("Menu item can't be attached both to page and static link!")
-            return False
-        return super(MenuView, self).validate_form(form)
+            raise ValidationError("Menu item can't be attached both to page and static link!")
+        if form.item_parent.data == model or form.item_subitems.data.count(model):
+            raise ValidationError("Menu item can't be a parent of itself!")
 
 
 class LinkView(StructureView):
