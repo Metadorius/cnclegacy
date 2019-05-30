@@ -76,7 +76,6 @@ class ProtectedFileAdmin(FileAdmin):
 class UserView(ManageUsersView):
     column_exclude_list = ['user_password_hash']
     column_searchable_list = ['user_login']
-    column_editable_list = ['user_login']
 
     column_list = ['user_login', 'user_role']
     column_default_sort = ('role_id', True)
@@ -123,7 +122,6 @@ class PermView(UtilityView):
 class MenuView(StructureView):
     column_display_pk = True
     column_searchable_list = ['item_name']
-    column_editable_list = ['item_name']
 
     column_default_sort = ('item_id', False)
 
